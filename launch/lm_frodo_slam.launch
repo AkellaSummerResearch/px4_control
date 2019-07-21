@@ -1,0 +1,45 @@
+<launch>
+
+    <arg name="namespace" default="Frodo" />
+    <arg name="rviz_cfg"  default="-d $(find px4_control)/Extras/$(arg namespace)Inspection.rviz" />
+    <arg name="launch_rviz" default="false" />
+
+    <!-- MAVROS parameters -->
+    <arg name="fcu_url" default="udp://:14531@192.168.1.31:14541"/>
+    <arg name="gcs_url" default="" />
+    <arg name="tgt_system" default="1" />
+    <arg name="tgt_component" default="1" />
+    <arg name="log_output" default="screen" />
+    
+    <!-- Launch nodes -->
+    <group ns="$(arg namespace)">
+        <!-- px4_control -->
+        <include file="$(find px4_control)/launch/lm_group_slam.launch"> 
+            <arg name="namespace" value="$(arg namespace)" />
+        </include>
+
+        <!-- MAVROS -->
+        <include file="$(find mavros)/launch/node.launch">
+            <arg name="pluginlists_yaml" value="$(find mavros)/launch/px4_pluginlists.yaml" />
+            <arg name="config_yaml" value="$(find mavros)/launch/px4_config.yaml" />
+            <arg name="fcu_url" value="$(arg fcu_url)" />
+            <arg name="gcs_url" value="$(arg gcs_url)" />
+            <arg name="tgt_system" value="$(arg tgt_system)" />
+            <arg name="tgt_component" value="$(arg tgt_component)" />
+            <arg name="log_output" value="$(arg log_output)" />
+        </include>
+    </group>
+
+    <node name="frodo_joy" pkg="topic_tools" type="relay"
+        args="/joy /$(arg namespace)/joy" />
+
+    <node name="odom_relay" pkg="odom_relay" type="odom_relay_lpe"/>
+
+     <node pkg="tf" type="static_transform_publisher" name="camera_to_optical_tf" args="0 0 0 0 0 0 map fcu 100" />
+
+    <!-- Launch RVIZ -->
+    <group if="$(arg launch_rviz)">
+        <node pkg="rviz" type="rviz" name="rviz" args="$(arg rviz_cfg)"/>
+    </group>
+
+</launch>

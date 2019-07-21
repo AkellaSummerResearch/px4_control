@@ -1,0 +1,21 @@
+<launch>
+    <arg name="namespace" default="Gazebo" />
+    <group ns="$(arg namespace)">
+        <include file="$(find px4_control)/launch/360_group.launch"> 
+            <arg name="namespace" value="$(arg namespace)" />
+        </include>
+    </group>
+
+    <node respawn="true" pkg="joy" type="joy_node" name="joy" >
+        <param name="dev" type="string" value="/dev/input/js0" />
+        <param name="deadzone" value="0.12" />
+        <param name="autorepeat_rate" value="20" />
+    </node>
+
+    <node name="gazebo_joy" pkg="topic_tools" type="relay"
+            args="/joy /$(arg namespace)/joy" />
+
+    <!-- Launch RVIZ -->
+    <node pkg="rviz" type="rviz" name="rviz" 
+            args="-d $(find px4_control)/Extras/$(arg namespace).rviz"/>
+</launch>
